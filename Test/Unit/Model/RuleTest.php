@@ -9,7 +9,6 @@ namespace Magento\CatalogRule\Test\Unit\Model;
 
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
-use Magento\CatalogRule\Api\Data\RuleInterface;
 use Magento\CatalogRule\Model\Indexer\Rule\RuleProductProcessor;
 use Magento\CatalogRule\Model\Rule;
 use Magento\CatalogRule\Model\Rule\Condition\CombineFactory;
@@ -32,60 +31,46 @@ use PHPUnit\Framework\TestCase;
  */
 class RuleTest extends TestCase
 {
-    /**
-     * @var Rule
-     */
-    private $rule;
+    /** @var Rule */
+    protected $rule;
 
-    /**
-     * @var ObjectManager
-     */
+    /** @var ObjectManager */
     private $objectManager;
 
-    /**
-     * @var StoreManagerInterface|MockObject
-     */
-    private $storeManager;
+    /** @var StoreManagerInterface|MockObject */
+    protected $storeManager;
 
-    /**
-     * @var CombineFactory|MockObject
-     */
-    private $combineFactory;
+    /** @var MockObject */
+    protected $combineFactory;
 
-    /**
-     * @var Store|MockObject
-     */
-    private $storeModel;
+    /** @var Store|MockObject */
+    protected $storeModel;
 
-    /**
-     * @var Website|MockObject
-     */
-    private $websiteModel;
+    /** @var Website|MockObject */
+    protected $websiteModel;
 
-    /**
-     * @var Combine|MockObject
-     */
-    private $condition;
+    /** @var Combine|MockObject */
+    protected $condition;
 
     /**
      * @var RuleProductProcessor|MockObject
      */
-    private $_ruleProductProcessor;
+    protected $_ruleProductProcessor;
 
     /**
      * @var CollectionFactory|MockObject
      */
-    private $_productCollectionFactory;
+    protected $_productCollectionFactory;
 
     /**
      * @var Iterator|MockObject
      */
-    private $_resourceIterator;
+    protected $_resourceIterator;
 
     /**
      * @var Product|MockObject
      */
-    private $productModel;
+    protected $productModel;
 
     /**
      * Set up before test
@@ -100,7 +85,7 @@ class RuleTest extends TestCase
         $this->combineFactory = $this->createPartialMock(
             CombineFactory::class,
             [
-                'create',
+                'create'
             ]
         );
         $this->productModel = $this->createPartialMock(
@@ -108,7 +93,7 @@ class RuleTest extends TestCase
             [
                 '__wakeup',
                 'getId',
-                'setData',
+                'setData'
             ]
         );
         $this->condition = $this->getMockBuilder(Combine::class)
@@ -121,7 +106,7 @@ class RuleTest extends TestCase
             [
                 '__wakeup',
                 'getId',
-                'getDefaultStore',
+                'getDefaultStore'
             ]
         );
         $this->_ruleProductProcessor = $this->createMock(
@@ -207,7 +192,7 @@ class RuleTest extends TestCase
             'has_options' => '0',
             'required_options' => '0',
             'created_at' => '2014-06-25 13:14:30',
-            'updated_at' => '2014-06-25 14:37:15',
+            'updated_at' => '2014-06-25 14:37:15'
         ];
         $this->storeManager->expects($this->any())->method('getWebsites')->with(false)
             ->willReturn([$this->websiteModel, $this->websiteModel]);
@@ -278,14 +263,14 @@ class RuleTest extends TestCase
                     'simple_action' => 'by_fixed',
                     'discount_amount' => '123',
                 ],
-                true,
+                true
             ],
             [
                 [
                     'simple_action' => 'by_percent',
                     'discount_amount' => '9,99',
                 ],
-                true,
+                true
             ],
             [
                 [
@@ -294,7 +279,7 @@ class RuleTest extends TestCase
                 ],
                 [
                     'Percentage discount should be between 0 and 100.',
-                ],
+                ]
             ],
             [
                 [
@@ -303,7 +288,7 @@ class RuleTest extends TestCase
                 ],
                 [
                     'Percentage discount should be between 0 and 100.',
-                ],
+                ]
             ],
             [
                 [
@@ -312,7 +297,7 @@ class RuleTest extends TestCase
                 ],
                 [
                     'Discount value should be 0 or greater.',
-                ],
+                ]
             ],
             [
                 [
@@ -321,7 +306,7 @@ class RuleTest extends TestCase
                 ],
                 [
                     'Unknown action.',
-                ],
+                ]
             ],
         ];
     }
@@ -340,46 +325,31 @@ class RuleTest extends TestCase
     }
 
     /**
-     * Test after update action for active and deactivated rule.
-     *
-     * @dataProvider afterUpdateDataProvider
-     * @param int $active
-     * @return void
-     */
-    public function testAfterUpdate(int $active)
-    {
-        $this->rule->isObjectNew(false);
-        $this->rule->setIsActive($active);
-        $this->rule->setOrigData(RuleInterface::IS_ACTIVE, 1);
-        $indexer = $this->getMockForAbstractClass(IndexerInterface::class);
-        $indexer->expects($this->once())->method('invalidate');
-        $this->_ruleProductProcessor->expects($this->once())->method('getIndexer')->willReturn($indexer);
-        $this->rule->afterSave();
-    }
-
-    /**
-     * Test after update action for inactive rule.
+     * Test after update action for inactive rule
      *
      * @return void
      */
-    public function testAfterUpdateInactiveRule()
+    public function testAfterUpdateInactive()
     {
         $this->rule->isObjectNew(false);
         $this->rule->setIsActive(0);
-        $this->rule->setOrigData(RuleInterface::IS_ACTIVE, 0);
         $this->_ruleProductProcessor->expects($this->never())->method('getIndexer');
         $this->rule->afterSave();
     }
 
     /**
-     * @return array
+     * Test after update action for active rule
+     *
+     * @return void
      */
-    public function afterUpdateDataProvider(): array
+    public function testAfterUpdateActive()
     {
-        return [
-            ['active' => 0],
-            ['active' => 1],
-        ];
+        $this->rule->isObjectNew(false);
+        $this->rule->setIsActive(1);
+        $indexer = $this->getMockForAbstractClass(IndexerInterface::class);
+        $indexer->expects($this->once())->method('invalidate');
+        $this->_ruleProductProcessor->expects($this->once())->method('getIndexer')->willReturn($indexer);
+        $this->rule->afterSave();
     }
 
     /**

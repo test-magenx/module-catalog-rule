@@ -64,8 +64,7 @@ class ReindexRuleProductPriceTest extends TestCase
             $this->ruleProductsSelectBuilderMock,
             $this->productPriceCalculatorMock,
             $this->localeDate,
-            $this->pricesPersistorMock,
-            true
+            $this->pricesPersistorMock
         );
     }
 
