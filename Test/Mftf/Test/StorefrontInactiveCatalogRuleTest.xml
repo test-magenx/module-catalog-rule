@@ -46,23 +46,14 @@
         </after>
 
         <!-- Verify price is not discounted on category page -->
-        <actionGroup ref="StorefrontNavigateCategoryPageActionGroup" stepKey="openCategoryPageOnFrontend">
-            <argument name="category" value="$$createCategory$$"/>
-        </actionGroup>
-        <comment userInput="Comment is added to preserve the step key for backward compatibility" stepKey="waitForCategoryPageLoaded"/>
-        <actionGroup ref="StorefrontAssertProductPriceOnCategoryPageActionGroup" stepKey="seeProductPriceOnCategoryPage">
-            <argument name="productName" value="$$createProduct.name$$"/>
-            <argument name="productPrice" value="$$createProduct.price$$"/>
-        </actionGroup>
+        <amOnPage url="{{StorefrontCategoryPage.url($createCategory.custom_attributes[url_key]$)}}" stepKey="openCategoryPageOnFrontend"/>
+        <waitForPageLoad stepKey="waitForCategoryPageLoaded"/>
+        <see selector="{{StorefrontCategoryProductSection.ProductPriceByNumber('1')}}" userInput="$$createProduct.price$$" stepKey="seeProductPriceOnCategoryPage"/>
 
         <!-- Verify price is not discounted on the product page -->
-        <actionGroup ref="StorefrontOpenProductEntityPageActionGroup" stepKey="openProductPageOnFrontend">
-            <argument name="product" value="$createProduct$"/>
-        </actionGroup>
-        <comment userInput="Comment is added to preserve the step key for backward compatibility" stepKey="waitForProductPageLoaded"/>
-        <actionGroup ref="StorefrontAssertProductPriceOnProductPageActionGroup" stepKey="seePriceOnProductPage">
-            <argument name="productPrice" value="$createProduct.price$"/>
-        </actionGroup>
+        <amOnPage url="{{StorefrontProductPage.url($createProduct.custom_attributes[url_key]$)}}" stepKey="openProductPageOnFrontend"/>
+        <waitForPageLoad stepKey="waitForProductPageLoaded"/>
+        <see selector="{{StorefrontProductInfoMainSection.productPrice}}" userInput="$createProduct.price$" stepKey="seePriceOnProductPage"/>
 
         <!-- Verify price is not discounted in the cart -->
         <actionGroup ref="AddToCartFromStorefrontProductPageActionGroup" stepKey="addToCartFromStorefrontProductPage">
@@ -70,8 +61,6 @@
         </actionGroup>
         <actionGroup ref="StorefrontCartPageOpenActionGroup" stepKey="openCartPage" />
         <waitForElementVisible selector="{{CheckoutCartSummarySection.subtotal}}" stepKey="waitForSubtotalAppears"/>
-        <actionGroup ref="AssertStorefrontCheckoutPaymentSummarySubtotalActionGroup" stepKey="seeProductPriceOnCartPage">
-            <argument name="orderSubtotal" value="$createProduct.price$"/>
-        </actionGroup>
+        <see selector="{{CheckoutCartSummarySection.subtotal}}" userInput="$createProduct.price$" stepKey="seeProductPriceOnCartPage"/>
     </test>
 </tests>

@@ -25,9 +25,6 @@ class ConverterTest extends TestCase
      */
     protected $model;
 
-    /**
-     * @inheritDoc
-     */
     protected function setUp(): void
     {
         $this->conditionFactoryMock = $this->createPartialMock(
@@ -37,10 +34,7 @@ class ConverterTest extends TestCase
         $this->model = new Converter($this->conditionFactoryMock);
     }
 
-    /**
-    * @return void
-    */
-    public function testDataModelToArray(): void
+    public function testDataModelToArray()
     {
         $childConditionMock = $this->getMockForAbstractClass(ConditionInterface::class);
         $childConditionMock->expects($this->once())->method('getType')->willReturn('child-type');
@@ -74,17 +68,14 @@ class ConverterTest extends TestCase
                     'operator' => 'child-operator',
                     'value' => 'child-value',
                     'is_value_processed' => 1,
-                    'aggregator' => 'all'
+                    'aggregator' => 'all',
                 ]
             ]
         ];
         $this->assertEquals($expectedResult, $this->model->dataModelToArray($dataModelMock));
     }
 
-    /**
-    * @return void
-    */
-    public function testArrayToDataModel(): void
+    public function testArrayToDataModel()
     {
         $array = [
             'type' => 'type',
@@ -100,7 +91,7 @@ class ConverterTest extends TestCase
                     'operator' => 'child-operator',
                     'value' => 'child-value',
                     'is_value_parsed' => false,
-                    'aggregator' => 'any'
+                    'aggregator' => 'any',
                 ]
             ]
         ];
@@ -108,9 +99,8 @@ class ConverterTest extends TestCase
         $conditionMock = $this->getMockForAbstractClass(ConditionInterface::class);
         $conditionChildMock = $this->getMockForAbstractClass(ConditionInterface::class);
 
-        $this->conditionFactoryMock
-            ->method('create')
-            ->willReturnOnConsecutiveCalls($conditionMock, $conditionChildMock);
+        $this->conditionFactoryMock->expects($this->at(0))->method('create')->willReturn($conditionMock);
+        $this->conditionFactoryMock->expects($this->at(1))->method('create')->willReturn($conditionChildMock);
 
         $conditionMock->expects($this->once())->method('setType')->with('type')->willReturnSelf();
         $conditionMock->expects($this->once())->method('setAggregator')->with('all')->willReturnSelf();

@@ -5,6 +5,7 @@
  */
 declare(strict_types=1);
 
+
 namespace Magento\CatalogRule\Test\Unit\Model\Indexer;
 
 use Magento\Catalog\Model\ResourceModel\Indexer\ActiveTableSwitcher;
@@ -43,9 +44,6 @@ class RuleProductPricesPersistorTest extends TestCase
      */
     private $tableSwapperMock;
 
-    /**
-     * @inheritDoc
-     */
     protected function setUp(): void
     {
         $this->dateTimeMock = $this->getMockBuilder(DateTime::class)
@@ -68,25 +66,19 @@ class RuleProductPricesPersistorTest extends TestCase
         );
     }
 
-    /**
-    * @return void
-    */
-    public function testExecuteWithEmptyPriceData(): void
+    public function testExecuteWithEmptyPriceData()
     {
         $this->assertFalse($this->model->execute([]));
     }
 
-    /**
-    * @return void
-    */
-    public function testExecute(): void
+    public function testExecute()
     {
         $priceData = [
             [
                 'product_id' => 1,
                 'rule_date' => '2017-05-01',
                 'latest_start_date' => '2017-05-10',
-                'earliest_end_date' => '2017-05-20'
+                'earliest_end_date' => '2017-05-20',
             ]
         ];
         $tableName = 'catalogrule_product_price_replica';
@@ -100,23 +92,29 @@ class RuleProductPricesPersistorTest extends TestCase
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
         $this->resourceMock->expects($this->once())->method('getConnection')->willReturn($connectionMock);
-        $this->resourceMock
+        $this->resourceMock->expects($this->at(1))
             ->method('getTableName')
-            ->withConsecutive(['catalogrule_product_price'], [$tableName])
-            ->willReturnOnConsecutiveCalls('catalogrule_product_price', $tableName);
+            ->with('catalogrule_product_price')
+            ->willReturn('catalogrule_product_price');
+        $this->resourceMock->expects($this->at(2))
+            ->method('getTableName')
+            ->with($tableName)
+            ->willReturn($tableName);
 
-        $this->dateTimeMock
+        $this->dateTimeMock->expects($this->at(0))
             ->method('formatDate')
-            ->withConsecutive(
-                [$priceData[0]['rule_date'], false],
-                [$priceData[0]['latest_start_date'], false],
-                [$priceData[0]['earliest_end_date'], false]
-            )
-            ->willReturnOnConsecutiveCalls(
-                $priceData[0]['rule_date'],
-                $priceData[0]['latest_start_date'],
-                $priceData[0]['earliest_end_date']
-            );
+            ->with($priceData[0]['rule_date'], false)
+            ->willReturn($priceData[0]['rule_date']);
+
+        $this->dateTimeMock->expects($this->at(1))
+            ->method('formatDate')
+            ->with($priceData[0]['latest_start_date'], false)
+            ->willReturn($priceData[0]['latest_start_date']);
+
+        $this->dateTimeMock->expects($this->at(2))
+            ->method('formatDate')
+            ->with($priceData[0]['earliest_end_date'], false)
+            ->willReturn($priceData[0]['earliest_end_date']);
 
         $connectionMock->expects($this->once())
             ->method('insertOnDuplicate')
@@ -125,10 +123,7 @@ class RuleProductPricesPersistorTest extends TestCase
         $this->assertTrue($this->model->execute($priceData, true));
     }
 
-    /**
-    * @return void
-    */
-    public function testExecuteWithException(): void
+    public function testExecuteWithException()
     {
         $this->expectException('Exception');
         $this->expectExceptionMessage('Insert error.');
@@ -137,7 +132,7 @@ class RuleProductPricesPersistorTest extends TestCase
                 'product_id' => 1,
                 'rule_date' => '2017-05-5',
                 'latest_start_date' => '2017-05-10',
-                'earliest_end_date' => '2017-05-22'
+                'earliest_end_date' => '2017-05-22',
             ]
         ];
         $tableName = 'catalogrule_product_price_replica';
@@ -147,18 +142,20 @@ class RuleProductPricesPersistorTest extends TestCase
             ->with('catalogrule_product_price')
             ->willReturn($tableName);
 
-        $this->dateTimeMock
+        $this->dateTimeMock->expects($this->at(0))
             ->method('formatDate')
-            ->withConsecutive(
-                [$priceData[0]['rule_date'], false],
-                [$priceData[0]['latest_start_date'], false],
-                [$priceData[0]['earliest_end_date'], false]
-            )
-            ->willReturnOnConsecutiveCalls(
-                $priceData[0]['rule_date'],
-                $priceData[0]['latest_start_date'],
-                $priceData[0]['earliest_end_date']
-            );
+            ->with($priceData[0]['rule_date'], false)
+            ->willReturn($priceData[0]['rule_date']);
+
+        $this->dateTimeMock->expects($this->at(1))
+            ->method('formatDate')
+            ->with($priceData[0]['latest_start_date'], false)
+            ->willReturn($priceData[0]['latest_start_date']);
+
+        $this->dateTimeMock->expects($this->at(2))
+            ->method('formatDate')
+            ->with($priceData[0]['earliest_end_date'], false)
+            ->willReturn($priceData[0]['earliest_end_date']);
 
         $connectionMock = $this->getMockBuilder(AdapterInterface::class)
             ->disableOriginalConstructor()
@@ -169,10 +166,14 @@ class RuleProductPricesPersistorTest extends TestCase
             ->willThrowException(new \Exception('Insert error.'));
 
         $this->resourceMock->expects($this->once())->method('getConnection')->willReturn($connectionMock);
-        $this->resourceMock
+        $this->resourceMock->expects($this->at(1))
             ->method('getTableName')
-            ->withConsecutive(['catalogrule_product_price'], [$tableName])
-            ->willReturnOnConsecutiveCalls('catalogrule_product_price', $tableName);
+            ->with('catalogrule_product_price')
+            ->willReturn('catalogrule_product_price');
+        $this->resourceMock->expects($this->at(2))
+            ->method('getTableName')
+            ->with($tableName)
+            ->willReturn($tableName);
 
         $this->assertTrue($this->model->execute($priceData, true));
     }

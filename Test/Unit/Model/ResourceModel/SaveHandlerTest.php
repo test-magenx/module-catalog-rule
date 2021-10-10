@@ -32,9 +32,6 @@ class SaveHandlerTest extends TestCase
      */
     protected $metadataMock;
 
-    /**
-     * @inheritDoc
-     */
     protected function setUp(): void
     {
         $this->resourceMock = $this->createMock(Rule::class);
@@ -45,10 +42,7 @@ class SaveHandlerTest extends TestCase
         );
     }
 
-    /**
-    * @return void
-    */
-    public function testExecute(): void
+    public function testExecute()
     {
         $linkedField = 'entity_id';
         $entityId = 100;
@@ -72,13 +66,15 @@ class SaveHandlerTest extends TestCase
             ->willReturn($metadataMock);
         $metadataMock->expects($this->once())->method('getLinkField')->willReturn($linkedField);
 
-        $this->resourceMock
+        $this->resourceMock->expects($this->at(0))
             ->method('bindRuleToEntity')
-            ->withConsecutive(
-                [$entityId, explode(',', (string) $websiteIds), 'website'],
-                [$entityId, explode(',', (string)$customerGroupIds), 'customer_group']
-            )
-            ->willReturnOnConsecutiveCalls($this->resourceMock, $this->resourceMock);
+            ->with($entityId, explode(',', (string)$websiteIds), 'website')
+            ->willReturnSelf();
+
+        $this->resourceMock->expects($this->at(1))
+            ->method('bindRuleToEntity')
+            ->with($entityId, explode(',', (string)$customerGroupIds), 'customer_group')
+            ->willReturnSelf();
 
         $this->assertEquals($entityData, $this->subject->execute($entityType, $entityData));
     }

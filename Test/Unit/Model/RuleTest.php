@@ -70,17 +70,17 @@ class RuleTest extends TestCase
     /**
      * @var RuleProductProcessor|MockObject
      */
-    private $ruleProductProcessor;
+    private $_ruleProductProcessor;
 
     /**
      * @var CollectionFactory|MockObject
      */
-    private $productCollectionFactory;
+    private $_productCollectionFactory;
 
     /**
      * @var Iterator|MockObject
      */
-    private $resourceIterator;
+    private $_resourceIterator;
 
     /**
      * @var Product|MockObject
@@ -88,7 +88,9 @@ class RuleTest extends TestCase
     private $productModel;
 
     /**
-     * @inheritDoc
+     * Set up before test
+     *
+     * @return void
      */
     protected function setUp(): void
     {
@@ -98,7 +100,7 @@ class RuleTest extends TestCase
         $this->combineFactory = $this->createPartialMock(
             CombineFactory::class,
             [
-                'create'
+                'create',
             ]
         );
         $this->productModel = $this->createPartialMock(
@@ -106,7 +108,7 @@ class RuleTest extends TestCase
             [
                 '__wakeup',
                 'getId',
-                'setData'
+                'setData',
             ]
         );
         $this->condition = $this->getMockBuilder(Combine::class)
@@ -119,19 +121,19 @@ class RuleTest extends TestCase
             [
                 '__wakeup',
                 'getId',
-                'getDefaultStore'
+                'getDefaultStore',
             ]
         );
-        $this->ruleProductProcessor = $this->createMock(
+        $this->_ruleProductProcessor = $this->createMock(
             RuleProductProcessor::class
         );
 
-        $this->productCollectionFactory = $this->createPartialMock(
+        $this->_productCollectionFactory = $this->createPartialMock(
             CollectionFactory::class,
             ['create']
         );
 
-        $this->resourceIterator = $this->createPartialMock(
+        $this->_resourceIterator = $this->createPartialMock(
             Iterator::class,
             ['walk']
         );
@@ -144,25 +146,26 @@ class RuleTest extends TestCase
             [
                 'storeManager' => $this->storeManager,
                 'combineFactory' => $this->combineFactory,
-                'ruleProductProcessor' => $this->ruleProductProcessor,
-                'productCollectionFactory' => $this->productCollectionFactory,
-                'resourceIterator' => $this->resourceIterator,
+                'ruleProductProcessor' => $this->_ruleProductProcessor,
+                'productCollectionFactory' => $this->_productCollectionFactory,
+                'resourceIterator' => $this->_resourceIterator,
                 'extensionFactory' => $extensionFactoryMock,
                 'customAttributeFactory' => $attributeValueFactoryMock,
-                'serializer' => $this->getSerializerMock()
+                'serializer' => $this->getSerializerMock(),
             ]
         );
     }
 
     /**
-     * Get mock for serializer.
+     * Get mock for serializer
      *
      * @return MockObject
      */
-    private function getSerializerMock(): MockObject
+    private function getSerializerMock()
     {
-        $serializerMock = $this->getMockBuilder(Json::class)->disableOriginalConstructor()
-            ->onlyMethods(['serialize', 'unserialize'])
+        $serializerMock = $this->getMockBuilder(Json::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['serialize', 'unserialize'])
             ->getMock();
 
         $serializerMock->expects($this->any())
@@ -185,12 +188,12 @@ class RuleTest extends TestCase
     }
 
     /**
+     * @dataProvider dataProviderCallbackValidateProduct
      * @param bool $validate
      *
      * @return void
-     * @dataProvider dataProviderCallbackValidateProduct
      */
-    public function testCallbackValidateProduct($validate): void
+    public function testCallbackValidateProduct($validate)
     {
         $args['product'] = $this->productModel;
         $args['attributes'] = [];
@@ -204,18 +207,20 @@ class RuleTest extends TestCase
             'has_options' => '0',
             'required_options' => '0',
             'created_at' => '2014-06-25 13:14:30',
-            'updated_at' => '2014-06-25 14:37:15'
+            'updated_at' => '2014-06-25 14:37:15',
         ];
         $this->storeManager->expects($this->any())->method('getWebsites')->with(false)
             ->willReturn([$this->websiteModel, $this->websiteModel]);
-        $this->websiteModel
-            ->method('getId')
-            ->willReturnOnConsecutiveCalls('1', '2');
+        $this->websiteModel->expects($this->at(0))->method('getId')
+            ->willReturn('1');
+        $this->websiteModel->expects($this->at(2))->method('getId')
+            ->willReturn('2');
         $this->websiteModel->expects($this->any())->method('getDefaultStore')
             ->willReturn($this->storeModel);
-        $this->storeModel
-            ->method('getId')
-            ->willReturnOnConsecutiveCalls('1', '2');
+        $this->storeModel->expects($this->at(0))->method('getId')
+            ->willReturn('1');
+        $this->storeModel->expects($this->at(1))->method('getId')
+            ->willReturn('2');
         $this->combineFactory->expects($this->any())->method('create')
             ->willReturn($this->condition);
         $this->condition->expects($this->any())->method('validate')
@@ -233,123 +238,122 @@ class RuleTest extends TestCase
     }
 
     /**
-     * Data provider for callbackValidateProduct test.
+     * Data provider for callbackValidateProduct test
      *
      * @return array
      */
-    public function dataProviderCallbackValidateProduct(): array
+    public function dataProviderCallbackValidateProduct()
     {
         return [
             [false],
-            [true]
+            [true],
         ];
     }
 
     /**
-     * Test validateData action.
+     * Test validateData action
      *
+     * @dataProvider validateDataDataProvider
      * @param array $data Data for the rule actions
      * @param bool|array $expected True or an array of errors
      *
      * @return void
-     * @dataProvider validateDataDataProvider
      */
-    public function testValidateData(array $data, $expected): void
+    public function testValidateData($data, $expected)
     {
         $result = $this->rule->validateData(new DataObject($data));
         $this->assertEquals($result, $expected);
     }
 
     /**
-     * Data provider for testValidateData test.
+     * Data provider for testValidateData test
      *
      * @return array
      */
-    public function validateDataDataProvider(): array
+    public function validateDataDataProvider()
     {
         return [
             [
                 [
                     'simple_action' => 'by_fixed',
-                    'discount_amount' => '123'
+                    'discount_amount' => '123',
                 ],
-                true
+                true,
             ],
             [
                 [
                     'simple_action' => 'by_percent',
-                    'discount_amount' => '9.99'
+                    'discount_amount' => '9,99',
                 ],
-                true
+                true,
             ],
             [
                 [
                     'simple_action' => 'by_percent',
-                    'discount_amount' => '123.12'
+                    'discount_amount' => '123.12',
                 ],
                 [
-                    'Percentage discount should be between 0 and 100.'
-                ]
+                    'Percentage discount should be between 0 and 100.',
+                ],
             ],
             [
                 [
                     'simple_action' => 'to_percent',
-                    'discount_amount' => '-12'
+                    'discount_amount' => '-12',
                 ],
                 [
-                    'Percentage discount should be between 0 and 100.'
-                ]
+                    'Percentage discount should be between 0 and 100.',
+                ],
             ],
             [
                 [
                     'simple_action' => 'to_fixed',
-                    'discount_amount' => '-1234567890'
+                    'discount_amount' => '-1234567890',
                 ],
                 [
-                    'Discount value should be 0 or greater.'
-                ]
+                    'Discount value should be 0 or greater.',
+                ],
             ],
             [
                 [
                     'simple_action' => 'invalid action',
-                    'discount_amount' => '12'
+                    'discount_amount' => '12',
                 ],
                 [
-                    'Unknown action.'
-                ]
-            ]
+                    'Unknown action.',
+                ],
+            ],
         ];
     }
 
     /**
-     * Test after delete action.
+     * Test after delete action
      *
      * @return void
      */
-    public function testAfterDelete(): void
+    public function testAfterDelete()
     {
         $indexer = $this->getMockForAbstractClass(IndexerInterface::class);
         $indexer->expects($this->once())->method('invalidate');
-        $this->ruleProductProcessor->expects($this->once())->method('getIndexer')->willReturn($indexer);
+        $this->_ruleProductProcessor->expects($this->once())->method('getIndexer')->willReturn($indexer);
         $this->rule->afterDelete();
     }
 
     /**
      * Test after update action for active and deactivated rule.
      *
-     * @param int $active
-     *
-     * @return void
      * @dataProvider afterUpdateDataProvider
+     * @param int $active
+     * @return void
      */
-    public function testAfterUpdate(int $active): void
+    public function testAfterUpdate(int $active)
     {
         $this->rule->isObjectNew(false);
         $this->rule->setIsActive($active);
         $this->rule->setOrigData(RuleInterface::IS_ACTIVE, 1);
         $indexer = $this->getMockForAbstractClass(IndexerInterface::class);
         $indexer->expects($this->once())->method('invalidate');
-        $this->ruleProductProcessor->expects($this->once())->method('getIndexer')->willReturn($indexer);
+        $this->_ruleProductProcessor->expects($this->once())->method('getIndexer')->willReturn($indexer);
         $this->rule->afterSave();
     }
 
@@ -358,12 +362,12 @@ class RuleTest extends TestCase
      *
      * @return void
      */
-    public function testAfterUpdateInactiveRule(): void
+    public function testAfterUpdateInactiveRule()
     {
         $this->rule->isObjectNew(false);
         $this->rule->setIsActive(0);
         $this->rule->setOrigData(RuleInterface::IS_ACTIVE, 0);
-        $this->ruleProductProcessor->expects($this->never())->method('getIndexer');
+        $this->_ruleProductProcessor->expects($this->never())->method('getIndexer');
         $this->rule->afterSave();
     }
 
@@ -374,12 +378,14 @@ class RuleTest extends TestCase
     {
         return [
             ['active' => 0],
-            ['active' => 1]
+            ['active' => 1],
         ];
     }
 
     /**
      * Test isRuleBehaviorChanged action
+     *
+     * @dataProvider isRuleBehaviorChangedDataProvider
      *
      * @param array $dataArray
      * @param array $originDataArray
@@ -387,19 +393,14 @@ class RuleTest extends TestCase
      * @param bool $result
      *
      * @return void
-     * @dataProvider isRuleBehaviorChangedDataProvider
      */
-    public function testIsRuleBehaviorChanged(
-        array $dataArray,
-        array $originDataArray,
-        bool $isObjectNew,
-        bool $result
-    ): void {
+    public function testIsRuleBehaviorChanged($dataArray, $originDataArray, $isObjectNew, $result)
+    {
         $this->rule->setData('website_ids', []);
         $this->rule->isObjectNew($isObjectNew);
         $indexer = $this->getMockForAbstractClass(IndexerInterface::class);
         $indexer->expects($this->any())->method('invalidate');
-        $this->ruleProductProcessor->expects($this->any())->method('getIndexer')->willReturn($indexer);
+        $this->_ruleProductProcessor->expects($this->any())->method('getIndexer')->willReturn($indexer);
 
         foreach ($dataArray as $data) {
             $this->rule->setData($data);
@@ -413,11 +414,11 @@ class RuleTest extends TestCase
     }
 
     /**
-     * Data provider for testIsRuleBehaviorChanged test.
+     * Data provider for testIsRuleBehaviorChanged test
      *
      * @return array
      */
-    public function isRuleBehaviorChangedDataProvider(): array
+    public function isRuleBehaviorChangedDataProvider()
     {
         return [
             [['new name', 'new description'], ['name', 'description'], false, false],
@@ -425,14 +426,11 @@ class RuleTest extends TestCase
             [['name', 'important_data'], ['name', 'important_data'], false, false],
             [['name', 'new important_data'], ['name', 'important_data'], false, true],
             [['name', 'description'], ['name', 'description'], true, true],
-            [['name', 'description'], ['name', 'important_data'], true, true]
+            [['name', 'description'], ['name', 'important_data'], true, true],
         ];
     }
 
-    /**
-     * @return void
-     */
-    public function testGetConditionsFieldSetId(): void
+    public function testGetConditionsFieldSetId()
     {
         $formName = 'form_name';
         $this->rule->setId(100);
@@ -440,12 +438,9 @@ class RuleTest extends TestCase
         $this->assertEquals($expectedResult, $this->rule->getConditionsFieldSetId($formName));
     }
 
-    /**
-     * @return void
-     */
-    public function testReindex(): void
+    public function testReindex()
     {
-        $this->ruleProductProcessor->expects($this->once())->method('reindexList');
+        $this->_ruleProductProcessor->expects($this->once())->method('reindexList');
         $this->rule->reindex();
     }
 }

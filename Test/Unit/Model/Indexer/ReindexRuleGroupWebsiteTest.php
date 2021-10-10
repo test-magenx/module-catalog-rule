@@ -5,6 +5,7 @@
  */
 declare(strict_types=1);
 
+
 namespace Magento\CatalogRule\Test\Unit\Model\Indexer;
 
 use Magento\Catalog\Model\ResourceModel\Indexer\ActiveTableSwitcher;
@@ -44,9 +45,6 @@ class ReindexRuleGroupWebsiteTest extends TestCase
      */
     private $tableSwapperMock;
 
-    /**
-     * @inheritDoc
-     */
     protected function setUp(): void
     {
         $this->dateTimeMock = $this->getMockBuilder(DateTime::class)
@@ -70,18 +68,13 @@ class ReindexRuleGroupWebsiteTest extends TestCase
         );
     }
 
-    /**
-    * @return void
-    */
-    public function testExecute(): void
+    public function testExecute()
     {
         $timeStamp = (int)gmdate('U');
         $insertString = 'insert_string';
         $connectionMock = $this->getMockBuilder(AdapterInterface::class)
             ->getMock();
-        $this->resourceMock
-            ->method('getConnection')
-            ->willReturn($connectionMock);
+        $this->resourceMock->expects($this->at(0))->method('getConnection')->willReturn($connectionMock);
         $this->dateTimeMock->expects($this->once())->method('gmtTimestamp')->willReturn($timeStamp);
 
         $this->tableSwapperMock->expects($this->any())
@@ -89,7 +82,7 @@ class ReindexRuleGroupWebsiteTest extends TestCase
             ->willReturnMap(
                 [
                     ['catalogrule_group_website', 'catalogrule_group_website_replica'],
-                    ['catalogrule_product', 'catalogrule_product_replica']
+                    ['catalogrule_product', 'catalogrule_product_replica'],
                 ]
             );
 
@@ -100,7 +93,7 @@ class ReindexRuleGroupWebsiteTest extends TestCase
                     ['catalogrule_group_website', 'default', 'catalogrule_group_website'],
                     ['catalogrule_product', 'default', 'catalogrule_product'],
                     ['catalogrule_group_website_replica', 'default', 'catalogrule_group_website_replica'],
-                    ['catalogrule_product_replica', 'default', 'catalogrule_product_replica']
+                    ['catalogrule_product_replica', 'default', 'catalogrule_product_replica'],
                 ]
             );
 

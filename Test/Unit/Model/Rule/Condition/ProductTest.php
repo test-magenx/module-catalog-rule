@@ -5,6 +5,7 @@
  */
 declare(strict_types=1);
 
+
 namespace Magento\CatalogRule\Test\Unit\Model\Rule\Condition;
 
 use Magento\Catalog\Model\ProductCategoryList;
@@ -17,44 +18,27 @@ use PHPUnit\Framework\TestCase;
 
 class ProductTest extends TestCase
 {
-    /**
-     * @var Product
-     */
+    /** @var Product */
     protected $product;
 
-    /**
-     * @var ObjectManagerHelper
-     */
+    /** @var ObjectManagerHelper */
     protected $objectManagerHelper;
 
-    /**
-     * @var Config|MockObject
-     */
+    /** @var Config|MockObject */
     protected $config;
 
-    /**
-     * @var \Magento\Catalog\Model\Product|MockObject
-     */
+    /** @var \Magento\Catalog\Model\Product|MockObject */
     protected $productModel;
 
-    /**
-     * @var \Magento\Catalog\Model\ResourceModel\Product|MockObject
-     */
+    /** @var \Magento\Catalog\Model\ResourceModel\Product|MockObject */
     protected $productResource;
 
-    /**
-     * @var Attribute|MockObject
-     */
+    /** @var Attribute|MockObject */
     protected $eavAttributeResource;
 
-    /**
-     * @var ProductCategoryList|MockObject
-     */
+    /** @var ProductCategoryList|MockObject */
     private $productCategoryList;
 
-    /**
-     * @inheritDoc
-     */
     protected function setUp(): void
     {
         $this->config = $this->createPartialMock(Config::class, ['getAttribute']);
@@ -69,15 +53,7 @@ class ProductTest extends TestCase
             ->getMock();
 
         $this->productResource = $this->getMockBuilder(\Magento\Catalog\Model\ResourceModel\Product::class)
-            ->onlyMethods(
-                [
-                    'loadAllAttributes',
-                    'getAttributesByCode',
-                    'getAttribute',
-                    'getConnection',
-                    'getTable'
-                ]
-            )
+            ->setMethods(['loadAllAttributes', 'getAttributesByCode', 'getAttribute', 'getConnection', 'getTable'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -122,7 +98,7 @@ class ProductTest extends TestCase
     /**
      * @return void
      */
-    public function testValidateMeetsCategory(): void
+    public function testValidateMeetsCategory()
     {
         $categoryIdList = [1, 2, 3];
 
@@ -135,16 +111,16 @@ class ProductTest extends TestCase
     }
 
     /**
+     * @dataProvider validateDataProvider
+     *
      * @param string $attributeValue
      * @param string|array $parsedValue
      * @param string $newValue
      * @param string $operator
      * @param array $input
-     *
      * @return void
-     * @dataProvider validateDataProvider
      */
-    public function testValidateWithDatetimeValue($attributeValue, $parsedValue, $newValue, $operator, $input): void
+    public function testValidateWithDatetimeValue($attributeValue, $parsedValue, $newValue, $operator, $input)
     {
         $this->product->setData('attribute', 'attribute_key');
         $this->product->setData('value_parsed', $parsedValue);
@@ -160,9 +136,10 @@ class ProductTest extends TestCase
 
         $this->productModel->expects($this->any())->method('hasData')
             ->willReturn(true);
-        $this->productModel
-            ->method('getData')
-            ->willReturnOnConsecutiveCalls(['1' => ['1' => $attributeValue]], $newValue, $newValue);
+        $this->productModel->expects($this->at(0))->method('getData')
+            ->willReturn(['1' => ['1' => $attributeValue]]);
+        $this->productModel->expects($this->any())->method('getData')
+            ->willReturn($newValue);
         $this->productModel->expects($this->any())->method('getId')
             ->willReturn('1');
         $this->productModel->expects($this->once())->method('getStoreId')
@@ -180,7 +157,7 @@ class ProductTest extends TestCase
     /**
      * @return void
      */
-    public function testValidateWithNoValue(): void
+    public function testValidateWithNoValue()
     {
         $this->product->setData('attribute', 'color');
         $this->product->setData('value_parsed', '1');
@@ -196,7 +173,7 @@ class ProductTest extends TestCase
     /**
      * @return array
      */
-    public function validateDataProvider(): array
+    public function validateDataProvider()
     {
         return [
             [
@@ -204,7 +181,7 @@ class ProductTest extends TestCase
                 'parsed_value' => '12:12',
                 'new_value' => '12:13',
                 'operator' => '>=',
-                'input' => ['method' => 'getBackendType', 'type' => 'input_type']
+                'input' => ['method' => 'getBackendType', 'type' => 'input_type'],
             ],
             [
                 'attribute_value' => '1',
